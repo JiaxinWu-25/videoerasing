@@ -33,6 +33,7 @@ def concatenate_frames(frames):
         concat_image[:, i*W:(i+1)*W] = frame
         
     return concat_image
+    #把它们横向拼接成一张图像
 
 def save_mask_frames(tensor: torch.Tensor, save_dir: str, prefix: str = "frame"):
     """
@@ -54,13 +55,70 @@ def save_mask_frames(tensor: torch.Tensor, save_dir: str, prefix: str = "frame")
     save_image(concatenated, save_path)
 
 @torch.no_grad()
-def get_cross_attn_mask(query, key, token_idx, head_num = 30,text_len = 226,height = 10, width = 10):
+def get_cross_attn_mask(query, key, token_idx, head_num = None,text_len = 226,height = 10, width = 10):
     #you'll have to input the height and width of the latent here
     inner_dim = key.shape[-1]#inner dim = 1920
+    
+    # 如果 head_num 未提供，尝试从 inner_dim 推断
+    # CogVideoX 常见的配置：30 heads * 64 dim = 1920
+    # 或者 40 heads * 48 dim = 1920
+    if head_num is None:
+        # 尝试常见的 head_num 值
+        for possible_head_num in [30, 40, 32, 24, 20]:
+            if inner_dim % possible_head_num == 0:
+                head_num = possible_head_num
+                break
+        if head_num is None:
+            # 如果都不行，尝试找到最大的能整除的因子
+            for i in range(inner_dim, 0, -1):
+                if inner_dim % i == 0 and i <= 64:  # head_num 通常不会太大
+                    head_num = i
+                    break
+        if head_num is None:
+            raise ValueError(f"Cannot infer head_num from inner_dim={inner_dim}")
+    
     head_dim = inner_dim // head_num
-
-    query = query.view(query.shape[0], -1, head_num, head_dim).transpose(1, 2)
-    key = key.view(key.shape[0], -1, head_num, head_dim).transpose(1, 2) 
+    
+    # 检查 query 和 key 的形状是否兼容
+    query_total_elements = query.numel()
+    key_total_elements = key.numel()
+    batch_size = query.shape[0]
+    
+    # query 应该是 (batch_size, seq_len, inner_dim) 或 (batch_size, seq_len * inner_dim)
+    # 需要 reshape 成 (batch_size, seq_len, head_num, head_dim)
+    if len(query.shape) == 2:
+        # 如果是 2D，需要推断 seq_len
+        seq_len = query_total_elements // (batch_size * inner_dim)
+        if seq_len * batch_size * inner_dim != query_total_elements:
+            # 尝试直接 reshape
+            query = query.view(batch_size, -1, inner_dim)
+        else:
+            query = query.view(batch_size, seq_len, inner_dim)
+    elif len(query.shape) == 3:
+        # 已经是 3D，确保最后一维是 inner_dim
+        if query.shape[-1] != inner_dim:
+            # 可能需要 flatten 中间维度
+            query = query.view(batch_size, -1, inner_dim)
+    else:
+        query = query.view(batch_size, -1, inner_dim)
+    
+    # 对 key 做同样的处理
+    if len(key.shape) == 2:
+        seq_len = key_total_elements // (batch_size * inner_dim)
+        if seq_len * batch_size * inner_dim != key_total_elements:
+            key = key.view(batch_size, -1, inner_dim)
+        else:
+            key = key.view(batch_size, seq_len, inner_dim)
+    elif len(key.shape) == 3:
+        if key.shape[-1] != inner_dim:
+            key = key.view(batch_size, -1, inner_dim)
+    else:
+        key = key.view(batch_size, -1, inner_dim)
+    
+    # 现在 reshape 成 (batch_size, seq_len, head_num, head_dim) 然后 transpose
+    # 从 (batch_size, seq_len, head_num, head_dim) -> (batch_size, head_num, seq_len, head_dim)
+    query = query.view(query.shape[0], query.shape[1], head_num, head_dim).transpose(1, 2)
+    key = key.view(key.shape[0], key.shape[1], head_num, head_dim).transpose(1, 2) 
    
 
     attn_scores = torch.matmul(query, key.transpose(-1, -2)) / math.sqrt(head_dim)
@@ -68,7 +126,7 @@ def get_cross_attn_mask(query, key, token_idx, head_num = 30,text_len = 226,heig
 
     attn_map_mean = attn_probs.sum(dim=1) / head_num #heads
 
-    attn_map = attn_map_mean[:, text_len:, :text_len]#batch_size,visual_len,text_len
+    attn_map = attn_map_mean[:, :text_len, text_len:    ] #batch_size,text_len,visual_len
 
     B, HWF, T = attn_map.shape
     F = HWF // (height * width)
@@ -171,3 +229,9 @@ class EraserOutputsCapture:
             def hook(model, input, output):
                 self.eraser_outs[module_name] = output
             return hook
+
+"""
+提取 Mask：利用 get_mask 知道“自行车”在哪。
+局限更新：通过 Loss 强迫 Eraser 在“非自行车区域”（即 1−M ）输出为 0。
+避免过度遗忘：因为 Eraser 在背景区域不工作（输出为 0），所以模型原本关于草地、天空、背景的知识被保留了下来（Adapter 加上 0 等于没加），只有目标物体被修改了。
+"""

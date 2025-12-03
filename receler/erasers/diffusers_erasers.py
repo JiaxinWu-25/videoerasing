@@ -22,7 +22,13 @@ def inject_eraser(unet, eraser_ckpt, eraser_rank, eraser_type='adapter'):
             attn_w_eraser = AttentionWithEraser(module.attn2, eraser_rank)
             attn_w_eraser.adapter.load_state_dict(eraser_ckpt[prefix_name])
             module.attn2 = attn_w_eraser
-
+            """
+            class BasicTransformerBlock(nn.Module):
+                self.attn1   # self-attention
+                self.attn2   # cross-attention
+                self.ff      # feed-forward network
+            格式如上所示，这里我们只在 cross-attention 上注入擦除器
+            """
 
 class AttentionWithEraser(nn.Module):
     def __init__(self, attn, eraser_rank):
@@ -32,8 +38,8 @@ class AttentionWithEraser(nn.Module):
 
     def forward(self, hidden_states, encoder_hidden_states=None, attention_mask=None, **cross_attention_kwargs):
         attn_outputs = self.attn(
-            hidden_states,
-            encoder_hidden_states=encoder_hidden_states,
+            hidden_states,   #查询 (Query)
+            encoder_hidden_states=encoder_hidden_states,  #键 (Key) 和 值 (Value) —— 仅在交叉注意力 (Cross-Attention) 时存在。含义：这是文本提示词（Prompt）的嵌入向量。
             attention_mask=attention_mask,
             **cross_attention_kwargs,
         )

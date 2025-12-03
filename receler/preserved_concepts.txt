@@ -1,0 +1,10 @@
+# Preserved Concepts File
+# 每行一个保留概念，以 # 开头的行为注释
+# 示例：在去除 "nudity" 概念时，保留以下概念
+
+person
+face
+clothing
+background
+scene
+

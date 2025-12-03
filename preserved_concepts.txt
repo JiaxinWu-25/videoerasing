@@ -1,0 +1,20 @@
+# Preserved Concepts for Target Concept: nudity
+# Auto-generated preserved concepts
+# Total: 15 concepts
+# Format: one concept per line
+
+background
+body
+clothing
+dress
+environment
+expression
+face
+facial features
+garment
+gesture
+hair
+hands
+human
+individual
+legs

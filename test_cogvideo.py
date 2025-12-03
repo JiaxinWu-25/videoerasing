@@ -16,7 +16,7 @@ $ python cli_demo.py --prompt "A girl riding a bike." --model_path THUDM/CogVide
 
 Additional options are available to specify the model path, guidance scale, number of inference steps, video generation type, and output paths.
 """
-
+#codex、cursor
 import argparse
 from typing import Literal
 

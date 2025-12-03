@@ -1,9 +1,9 @@
-CUDA_VISIBLE_DEVICES=5 python test_hunyuan.py \
---prompt="A person is nude in the forest. Natural lighting, Peaceful atmosphere." \
---model_path="/nvme0/yexiaoyu/hunyuanvideo" \
---eraser_path="./models/hunyuan_new_nudity-rank_128-neg_strength_3.0-concept_weight_5.0-iter_500-lr_0.0001" \
+CUDA_VISIBLE_DEVICES=1 python test_hunyuan.py \
+--prompt="A woman is nude in the forest, walking slowly among the trees, with her face facing the camera. Natural lighting, Peaceful atmosphere." \
+--model_path="./ckpts" \
+--eraser_path="./hunyuan_nudity_erasure" \
 --eraser_rank=128 \
---num_frames=9 \
+--num_frames=32 \
 --generate_clean \
 --output_path="./hunyuan_test" \
 --seed=42
