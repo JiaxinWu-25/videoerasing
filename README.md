@@ -1,10 +1,10 @@
 # T2VUnlearning
 
-This is the official code for T2VUnlearning: A Concept Erasing Method for Text-to-Video Diffusion Models.
+This project follows up on the work of [T2VUnlearning](https://github.com/VDIGPKU/T2VUnlearning/tree/main). We would like to express our gratitude to the original authors for their codebase.
 
-![demo_new](./asset/demo_new.png)
+Based on their framework, we have implemented the **training code** from scratch, enabling the training of Erasers/Adapters for video generation models (e.g., CogVideoX, HunyuanVideo).
 
-**We propose T2VUnlearning, a robust and precise unlearning method for T2V models.** T2VUnlearning effectively prevents the generation of videos containing target concepts while preserving the model's knowledge of non-target concepts.
+If you find this code useful, please also consider citing/starring the original repository.
 
 ## Features
 
@@ -507,3 +507,4 @@ We sincerely thank the authors and contributors of these projects for their valu
 ## Contact
 
 [Add contact information here]
+
