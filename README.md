@@ -231,21 +231,6 @@ CUDA_VISIBLE_DEVICES=0 python test_cogvideo.py \
 
 After running the script, you should find two output videos: `[output_path]_clean.mp4` and `[output_path]_erased.mp4`, corresponding to the results from the original model and the unlearned model, respectively.
 
-### HunyuanVideo
-
-```bash
-CUDA_VISIBLE_DEVICES=0 python test_hunyuan.py \
-    --prompt="[Test prompt]" \
-    --model_path=[Path of pretrained HunyuanVideo diffusers weight] \
-    --eraser_path=[Path of nudity erasure adapter] \
-    --eraser_rank=128 \
-    --num_frames=[Number of frames to generate. Default 49] \
-    --generate_clean \
-    --output_path=[Prefix for output videos] \
-    --seed=42
-```
-
-We also include inference script of SAFREE (`test_safree_hunyuan.sh`) and negative prompting (`test_neg_hunyuan.sh`) for HunyuanVideo.
 
 Evaluation prompt datasets can be found in `evaluation/data`.
 
@@ -507,6 +492,7 @@ We sincerely thank the authors and contributors of these projects for their valu
 ## Contact
 
 [Add contact information here]
+
 
 
 
