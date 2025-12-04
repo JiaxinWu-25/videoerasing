@@ -2,7 +2,7 @@
 
 This project follows up on the work of [T2VUnlearning](https://github.com/VDIGPKU/T2VUnlearning/tree/main). We would like to express our gratitude to the original authors for their codebase.
 
-Based on their framework, we have implemented the **training code** from scratch, enabling the training of Erasers/Adapters for video generation models (e.g., CogVideoX).
+Based on their framework, we have implemented the **training code** from scratch, which is not released by their framework, enabling the training of Erasers/Adapters for video generation models (e.g., CogVideoX).
 
 If you find this code useful, please also consider citing/starring the original repository.
 
@@ -507,5 +507,6 @@ We sincerely thank the authors and contributors of these projects for their valu
 ## Contact
 
 [Add contact information here]
+
 
 
